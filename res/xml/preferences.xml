@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/settings_cat_connection" >
+        <EditTextPreference
+                android:title="@string/settings_bind_port"
+                android:defaultValue="8004"
+                android:key="settings_bind_port"/>
+        <EditTextPreference
+                android:title="@string/settings_plug_port"
+                android:defaultValue="27431"
+                android:key="settings_plug_port"/>
+        <EditTextPreference
+                android:title="@string/settings_broadcast_address"
+                android:defaultValue="192.168.1.255"
+                android:key="settings_broadcast_address"/>
+    </PreferenceCategory>
+</PreferenceScreen>

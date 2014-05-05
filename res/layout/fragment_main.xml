@@ -1,0 +1,31 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/RelativeLayout1"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    tools:context="hangzhou.kankun.MainActivity$PlaceholderFragment" >
+
+    <ScrollView
+        android:id="@+id/msg_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/msg_textview"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:maxLines="250" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</RelativeLayout>
