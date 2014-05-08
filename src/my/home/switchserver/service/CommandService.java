@@ -1,4 +1,4 @@
-package my.home.lehome.service;
+package my.home.switchserver.service;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -8,12 +8,20 @@ import java.net.SocketTimeoutException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import my.home.lehome.activity.MainActivity;
-import my.home.lehome.config.Config;
-import my.home.lehome.helper.CommandHelper;
-import my.home.lehome.model.Plug;
+import my.home.switchserver.activity.MainActivity;
+import my.home.switchserver.config.Config;
+import my.home.switchserver.helper.CommandHelper;
+import my.home.switchserver.model.Plug;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 import org.zeromq.ZMQ.Poller;
@@ -39,6 +47,8 @@ public class CommandService extends Service {
 	private Thread heartbeatThread;
 	private Thread recvHeartbeatThread;
 	private DatagramSocket cmdSocket;
+	private boolean hasSendHeartbeat = false;
+	private Object syncObject = new Object();
 	
 	private boolean stopRunning;
 	
@@ -114,12 +124,19 @@ public class CommandService extends Service {
             while(!stopRunning) {
         		try {
         			DatagramPacket packet = CommandHelper.getHeartbeatPacket();
+        			synchronized (syncObject) {
+        				syncObject.notifyAll();
+    				}
         			if (packet != null) {
-        				cmdSocket.send(packet);
+    					cmdSocket.send(packet);
         			}
+        		}catch (SocketTimeoutException e) {
+        			Log.w(TAG, "send heartbeat timeout.");
+        			e.printStackTrace();
         		} catch (IOException e) {
         			e.printStackTrace();
         		}
+        		
         		try {
 					Thread.sleep(socketTimeout);
 				} catch (InterruptedException e) {
@@ -138,6 +155,13 @@ public class CommandService extends Service {
         	stopRunning = false;
             while(!stopRunning) {
         		try {
+					synchronized (syncObject) {
+						try {
+							syncObject.wait();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
         			DatagramPacket recvPacket = CommandHelper.recvResponsePacket(cmdSocket);
         			String recvString = CommandHelper.jnic.decode(recvPacket.getData(), recvPacket.getLength());
         			String[] recvConfirmStrings = recvString.split("%");
@@ -154,8 +178,12 @@ public class CommandService extends Service {
         				CommandService.ip2PlugHashMap.put(ipString, plug);
 					}
         		}catch (SocketTimeoutException e) {
+        			Log.w(TAG, "heartbeat timeout.");
+        			MainActivity.PlaceholderFragment.showMsg("heartbeat timeout.");
+        			CommandService.ip2PlugHashMap.clear();
         		} catch (IOException e) {
         			e.printStackTrace();
+        		} finally {
         		}
             }
             Log.d(TAG, "RecvHeartbeatRunnable stop......");
@@ -199,34 +227,47 @@ public class CommandService extends Service {
     }
 	/*
 	 * cmd type: open, close, list, check
-	 * example:  req: open|192.168.1.126
-	 *           rep: open / error
+	 * 
 	 */
-	private String cmdHandler(String cmd) {
+	private String cmdHandler(String jsonString) {
+		String cmd = "";
+		String target = "";
+		try {
+			JSONTokener jsonParser = new JSONTokener(jsonString);
+			JSONObject cmdObject = (JSONObject) jsonParser.nextValue();
+			cmd = cmdObject.getString("cmd");
+			if (cmdObject.has("target")) {
+				target = cmdObject.getString("target");
+			}
+		} catch (JSONException e) {
+			return "{\"res\":\"error\"}";
+		}
 		if (cmd.equals("list")) {
-			StringBuffer bf = new StringBuffer();
-			for (String ip : CommandService.ip2PlugHashMap.keySet()) {
-				Plug plug = CommandService.ip2PlugHashMap.get(ip);
-				bf.append(ip + "|" + plug.mac + "|" + plug.state);
+			try {
+				JSONObject repJSON = new JSONObject();
+				JSONArray plugsJSON = new JSONArray();
+				repJSON.put("switchs", plugsJSON);
+				for (String ip : CommandService.ip2PlugHashMap.keySet()) {
+					Plug plug = CommandService.ip2PlugHashMap.get(ip);
+					JSONObject plugJSON = new JSONObject();
+					plugJSON.put("ip", ip);
+					plugJSON.put("mac", plug.mac);
+					plugJSON.put("state", plug.state);
+					plugsJSON.put(plugJSON);
+				}
+				return "{\"res\":" + repJSON.toString() + "}";
+			} catch (JSONException e) {
+				e.printStackTrace();
+				return "{\"res\":\"error\"}";
 			}
-			return bf.toString();
 		}else {
-			String[] cmds = cmd.split("\\|");
-			if (cmds.length < 2) {
-				Log.e(TAG, "invaild cmd:" + cmd);
-				return "error";
-			}
-			
-			String cmdString = cmds[0];
-			String ipString = cmds[1];
-			
-			if (cmdString.equals("open") || cmdString.equals("close")) {
-				String resString = CommandHelper.sendOperation(ipString, cmdString);
-				return resString;
-			}else if (cmdString.equals("check")) {
-				return CommandHelper.checkState(ipString);
+			if (cmd.equals("open") || cmd.equals("close")) {
+				
+				return "{\"res\":\"" + CommandHelper.sendOperation(target, cmd) + "\"}";
+			}else if (cmd.equals("check")) {
+				return "{\"res\":\"" + CommandHelper.checkState(target) + "\"}";
 			}
 		}
-		return "error";
+		return "{\"res\":\"error\"}";
 	}
 }

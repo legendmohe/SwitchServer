@@ -1,13 +1,13 @@
-package my.home.lehome.activity;
+package my.home.switchserver.activity;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import my.home.lehome.R;
-import my.home.lehome.config.Config;
-import my.home.lehome.service.CommandService;
+import my.home.switchserver.R;
+import my.home.switchserver.config.Config;
+import my.home.switchserver.service.CommandService;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;

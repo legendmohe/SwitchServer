@@ -1,4 +1,4 @@
-package my.home.lehome.helper;
+package my.home.switchserver.helper;
 
 
 public class NetworkHelper {

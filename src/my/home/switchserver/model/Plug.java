@@ -1,4 +1,4 @@
-package my.home.lehome.model;
+package my.home.switchserver.model;
 
 public class Plug {
 	public String ip;

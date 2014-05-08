@@ -1,4 +1,4 @@
-package my.home.lehome.helper;
+package my.home.switchserver.helper;
 
 import hangzhou.kankun.WifiJniC;
 
@@ -12,8 +12,8 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import my.home.lehome.config.Config;
-import my.home.lehome.service.CommandService;
+import my.home.switchserver.config.Config;
+import my.home.switchserver.service.CommandService;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;

@@ -1,6 +1,6 @@
-package my.home.lehome.activity;
+package my.home.switchserver.activity;
 
-import my.home.lehome.fragment.SettingsFragment;
+import my.home.switchserver.fragment.SettingsFragment;
 import android.app.Activity;
 import android.os.Bundle;
 

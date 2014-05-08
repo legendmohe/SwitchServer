@@ -1,4 +1,4 @@
-package my.home.lehome.config;
+package my.home.switchserver.config;
 
 
 public class Config {

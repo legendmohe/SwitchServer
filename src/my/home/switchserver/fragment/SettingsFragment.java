@@ -1,6 +1,6 @@
-package my.home.lehome.fragment;
+package my.home.switchserver.fragment;
 
-import my.home.lehome.R;
+import my.home.switchserver.R;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
