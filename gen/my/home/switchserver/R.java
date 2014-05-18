@@ -1245,14 +1245,16 @@ containing a value of this type.
         /**  Description of a share target (both in the list of such or the default share button) in a ShareActionProvider (share UI). [CHAR LIMIT=NONE] 
          */
         public static final int abc_shareactionprovider_share_with_application=0x7f0b000b;
-        public static final int action_exit=0x7f0b0010;
-        public static final int action_settings=0x7f0b000f;
+        public static final int action_dim=0x7f0b0012;
+        public static final int action_exit=0x7f0b0011;
+        public static final int action_settings=0x7f0b0010;
         public static final int app_name=0x7f0b000d;
-        public static final int hello_world=0x7f0b000e;
-        public static final int settings_bind_port=0x7f0b0012;
-        public static final int settings_broadcast_address=0x7f0b0014;
-        public static final int settings_cat_connection=0x7f0b0011;
-        public static final int settings_plug_port=0x7f0b0013;
+        public static final int app_service_running=0x7f0b000e;
+        public static final int hello_world=0x7f0b000f;
+        public static final int settings_bind_port=0x7f0b0014;
+        public static final int settings_broadcast_address=0x7f0b0016;
+        public static final int settings_cat_connection=0x7f0b0013;
+        public static final int settings_plug_port=0x7f0b0015;
     }
     public static final class style {
         /** 

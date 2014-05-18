@@ -2,9 +2,11 @@
 <resources>
 
     <string name="app_name">SwitchServer</string>
+    <string name="app_service_running">Service is running</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="action_exit">Exit Server</string>
+    <string name="action_dim">Dim Screen</string>
     
     <string name="settings_cat_connection">Connection</string>
     <string name="settings_bind_port">Bind Port</string>

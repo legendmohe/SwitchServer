@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import my.home.switchserver.config.Config;
+import my.home.switchserver.model.Plug;
 import my.home.switchserver.service.CommandService;
 import android.os.Environment;
 import android.text.TextUtils;
@@ -58,24 +59,34 @@ public class CommandHelper {
 	public static String sendOperation(String ipString, String op) {
 		DatagramSocket cmdSocket = null;
 		try {
-			cmdSocket = new DatagramSocket();
-			cmdSocket.setSoTimeout(2000);
-			DatagramPacket packet = getOpPacket(op, ipString);
-			if (packet == null) {
-				return "error";
+			for (int i = 0; i < 5; i++) {
+				cmdSocket = new DatagramSocket();
+				cmdSocket.setSoTimeout(2000);
+				DatagramPacket packet = getOpPacket(op, ipString);
+				if (packet == null) {
+					return "error";
+				}
+				cmdSocket.send(packet);
+				
+				String recvString = recvResponse(cmdSocket);
+				String[] confirmNumStrings = recvString.split("%");
+				String confirmNum = confirmNumStrings[3].split("#")[1];
+				
+				DatagramPacket confirmPacket = getConfirmPacket(ipString, confirmNum);
+				cmdSocket.send(confirmPacket);
+				
+				String confirmString = recvResponse(cmdSocket);
+				String[] confirmStrings = confirmString.split("%");
+				if (confirmStrings[3].equals(op)) {
+					return op;
+				}else {
+					try {
+						Thread.sleep(200L);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 			}
-			cmdSocket.send(packet);
-			
-            String recvString = recvResponse(cmdSocket);
-			String[] confirmNumStrings = recvString.split("%");
-			String confirmNum = confirmNumStrings[3].split("#")[1];
-			
-			DatagramPacket confirmPacket = getConfirmPacket(ipString, confirmNum);
-			cmdSocket.send(confirmPacket);
-			
-			String confirmString = recvResponse(cmdSocket);
-			String[] confirmStrings = confirmString.split("%");
-			return confirmStrings[3];
 		} catch (IOException e) {
 			Log.e(TAG, e.toString());
 		} finally {

@@ -3,6 +3,7 @@ package my.home.switchserver.activity;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import my.home.switchserver.R;
@@ -25,11 +26,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class MainActivity extends ActionBarActivity {
+	
+	public static boolean STOPPED = false;
 	
 	private CommandService commandService;
     private ServiceConnection connection = new ServiceConnection() {  
@@ -57,9 +61,17 @@ public class MainActivity extends ActionBarActivity {
 		setupService();
 	}
 	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		this.unbindService(connection);
+	}
+	
 	private void setupService() {
+    	startService(new Intent(this, CommandService.class));
     	Intent bindIntent = new Intent(this, CommandService.class);  
     	this.bindService(bindIntent, connection, Context.BIND_AUTO_CREATE);
+    	STOPPED = false;
 	}
 
 	@Override
@@ -83,8 +95,10 @@ public class MainActivity extends ActionBarActivity {
 	    	return true;
 		}
 		if (id == R.id.action_exit) {
-			this.unbindService(connection);
+			stopService(new Intent(this, CommandService.class));
+			commandService.stopCommandService();
 			this.finish();
+			STOPPED = true;
 	    	return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -112,14 +126,7 @@ public class MainActivity extends ActionBarActivity {
 		private TextView msgTextView;
 		private ScrollView msgScrollView;
 		
-		LinkedHashMap<Integer, String> msgQueue = new LinkedHashMap<Integer, String>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected boolean removeEldestEntry(Map.Entry<Integer, String> eldest) {
-				return this.size() > 200;
-			}
-		};
+		LinkedList<String> msgQueue = new LinkedList<String>();
 		
 		public PlaceholderFragment() {
 			handler = new Handler(){
@@ -130,10 +137,12 @@ public class MainActivity extends ActionBarActivity {
 	                String dateString = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss").format(new Date(System.currentTimeMillis()));
 	                msgString = dateString + ":\n" + "	> " + msgString;
 	                
-	                msgQueue.put(msgQueue.size(), msgString);
+	                msgQueue.addLast(msgString);
+	                while (msgQueue.size() > 100) {
+						msgQueue.removeFirst();
+					}
 	                StringBuffer bf = new StringBuffer();
-	                for (int key : msgQueue.keySet()) {
-						String value = msgQueue.get(key);
+	                for (String value: msgQueue) {
 						bf.append(value + "\n");
 					}
 	                msgTextView.setText(bf.toString());
