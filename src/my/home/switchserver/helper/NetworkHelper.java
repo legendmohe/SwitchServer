@@ -38,7 +38,7 @@ public class NetworkHelper {
         		if (wifiLock == null) {
 	        		WifiManager manager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 	        		wifiLock = manager.createWifiLock(WifiManager.WIFI_MODE_FULL, "my.home.SwitchServer.wifi");
-//	        		wifiLock.setReferenceCounted(false);
+	        		wifiLock.setReferenceCounted(false);
                 }
         	}
         }
@@ -47,7 +47,7 @@ public class NetworkHelper {
         		if (wakeLock == null) {
         			PowerManager pMgr = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         			wakeLock = pMgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK|PowerManager.ON_AFTER_RELEASE, "my.home.SwitchServer.wake");
-//        			wakeLock.setReferenceCounted(false);
+        			wakeLock.setReferenceCounted(false);
                 }
         	}
         }

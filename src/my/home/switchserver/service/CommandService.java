@@ -10,6 +10,7 @@ import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import my.home.switchserver.R;
@@ -28,12 +29,16 @@ import org.zeromq.ZMQ.Context;
 import org.zeromq.ZMQ.Poller;
 import org.zeromq.ZMQ.Socket;
 
+import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.IHTTPSession;
+import fi.iki.elonen.NanoHTTPD.Response;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
 public class CommandService extends Service {
@@ -47,6 +52,8 @@ public class CommandService extends Service {
 	private final LocalBinder subscribeBinder = new LocalBinder();
 	private Socket socket;
 //	private ServerSocket serverSocket;
+	
+//	private SwitchHTTPServer switchHTTPServer;
 	
 	private Thread connectionThread;
 	private Thread heartbeatThread;
@@ -74,9 +81,11 @@ public class CommandService extends Service {
 		}
         Runnable heartbeat = new HeartbeatRunnable();
         heartbeatThread = new Thread(heartbeat);
+        heartbeatThread.setDaemon(true);
         heartbeatThread.start();
         RecvHeartbeatRunnable recvHeartbeat = new RecvHeartbeatRunnable();
         recvHeartbeatThread = new Thread(recvHeartbeat);
+        recvHeartbeatThread.setDaemon(true);
         recvHeartbeatThread.start();
         
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
@@ -89,7 +98,15 @@ public class CommandService extends Service {
 		builder.setContentIntent(contentIntent);
 		startForeground(NOTIFICATION_ID, builder.build());
         
-		NetworkHelper.keepWifiOn(this);
+//		switchHTTPServer = new SwitchHTTPServer(Config.BIND_PORT);
+//		try {
+//			switchHTTPServer.start();
+//		} catch (IOException e) {
+//			Log.e(TAG, e.toString());
+//			Log.e(TAG, "SwitchHTTPServer start error.");
+//		}
+		
+//		NetworkHelper.keepWifiOn(this);
 //		NetworkHelper.setNeverSleepPolicy(this);
 		
         Log.d(TAG, "onCreate() executed");
@@ -170,6 +187,11 @@ public class CommandService extends Service {
 			socket.close();
 			socket = null;
 		}
+		
+//		if (switchHTTPServer != null) {
+//			switchHTTPServer.stop();
+//			switchHTTPServer = null;
+//		}
 	}
 	
 	class HeartbeatRunnable implements Runnable {
@@ -271,7 +293,7 @@ public class CommandService extends Service {
 						}
 					}
 				} catch (Exception e) {
-					Log.e(TAG, e.toString());
+					Log.e(TAG, Log.getStackTraceString(e));
 				}
 			}
 //        	try {
@@ -377,4 +399,22 @@ public class CommandService extends Service {
 		}
 		return "{\"res\":\"error\"}";
 	}
+	
+	public class SwitchHTTPServer extends NanoHTTPD {
+
+		public SwitchHTTPServer(int port) {
+			super(port);
+		}
+		@Override public Response serve(IHTTPSession session) {
+			Map<String, String> parms = session.getParms();
+			if (!parms.containsKey("json")) {
+				return new Response("{\"res\":\"error\"}");
+			}
+			String sendString = cmdHandler(parms.get("json"));
+			MainActivity.PlaceholderFragment.showMsg("send: "
+					+ sendString);
+	        return new Response(sendString);
+	    }
+	}
+
 }

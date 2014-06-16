@@ -8,6 +8,7 @@ import java.util.Map;
 
 import my.home.switchserver.R;
 import my.home.switchserver.config.Config;
+import my.home.switchserver.helper.NetworkHelper;
 import my.home.switchserver.service.CommandService;
 import android.content.ComponentName;
 import android.content.Context;
@@ -59,6 +60,7 @@ public class MainActivity extends ActionBarActivity {
 		}
 		
 		setupService();
+		NetworkHelper.keepWifiOn(this);
 	}
 	
 	@Override
